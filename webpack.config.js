@@ -13,8 +13,25 @@ module.exports = {
           {
             test: /\.css$/,
             use: ['style-loader', 'css-loader']
+          },
+          {
+            test: /\.(png|svg|jpg|jpeg|gif)$/i,
+            type: 'asset/resource'
+          },
+          {
+            test : /\.js$/,
+            exclude: /node_modules/, 
+            loader:{
+              loader: "babel-loader",
+              options: {
+                presets: ["@babel/preset-env"]
+              }
+            }
           }
         ]
+    },
+    devServer:{
+      port: 3000
     },
     plugins: [
         new HTMLWebpackPlugin({template: "./src/index.html"}),
