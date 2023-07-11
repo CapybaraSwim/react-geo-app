@@ -1,46 +1,43 @@
 import React, { useState } from 'react';
-import { Modal, Input } from 'antd';
+import { Form, Input, Button } from 'antd';
 
-const ObjectForm = ({ onSubmit }) => {
-  const [modalVisible, setModalVisible] = useState(false);
+const ObjectForm = ({ onAddObject }) => {
   const [name, setName] = useState('');
-  const [lon, setLon] = useState('');
   const [lat, setLat] = useState('');
+  const [lon, setLon] = useState('');
 
-  const handleFormSubmit = () => {
-    onSubmit({ name, lon, lat });
-    setModalVisible(false);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const newObject = {
+      name: name,
+      lat: parseFloat(lat),
+      lon: parseFloat(lon)
+    };
+
+    onAddObject(newObject);
     setName('');
-    setLon('');
     setLat('');
+    setLon('');
   };
 
   return (
-    <>
-      <button onClick={() => setModalVisible(true)}>Добавить объект</button>
-      <Modal
-        title="Добавить новый объект"
-        Modal open={modalVisible}
-        onOk={handleFormSubmit}
-        onCancel={() => setModalVisible(false)}
-      >
-        <Input
-          placeholder="Название"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Input
-          placeholder="Долгота"
-          value={lon}
-          onChange={(e) => setLon(e.target.value)}
-        />
-        <Input
-          placeholder="Широта"
-          value={lat}
-          onChange={(e) => setLat(e.target.value)}
-        />
-      </Modal>
-    </>
+    <Form layout="vertical" onFinish={handleSubmit}>
+      <Form.Item label="Название">
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
+      </Form.Item>
+      <Form.Item label="Широта">
+        <Input value={lat} type="number" onChange={(e) => setLat(e.target.value)} />
+      </Form.Item>
+      <Form.Item label="Долгота">
+        <Input value={lon} type="number" onChange={(e) => setLon(e.target.value)} />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Добавить
+        </Button>
+      </Form.Item>
+    </Form>
   );
 };
 

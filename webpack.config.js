@@ -9,7 +9,7 @@ module.exports = {
   },
   devServer: {
     contentBase: './dist',
-    port: 3000
+    port: 300
   },
   module: {
     rules: [
@@ -28,6 +28,9 @@ module.exports = {
         use: ['style-loader', 'css-loader']
       }
     ]
+  },
+  resolve: {
+    extensions: ['.js', '.jsx']
   },
   plugins: [
     new HtmlWebpackPlugin({
