@@ -1,43 +1,45 @@
 import React, { useState } from 'react';
-import { Form, Input, Button } from 'antd';
+import { Button, Form, Input, Modal } from 'antd';
 
-const ObjectForm = ({ onAddObject }) => {
-  const [name, setName] = useState('');
-  const [lat, setLat] = useState('');
-  const [lon, setLon] = useState('');
+const ObjectForm = ({ visible, onCreate, onCancel }) => {
+  const [form] = Form.useForm();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const newObject = {
-      name: name,
-      lat: parseFloat(lat),
-      lon: parseFloat(lon)
-    };
-
-    onAddObject(newObject);
-    setName('');
-    setLat('');
-    setLon('');
+  const onFinish = (values) => {
+    onCreate(values);
+    form.resetFields();
   };
 
   return (
-    <Form layout="vertical" onFinish={handleSubmit}>
-      <Form.Item label="Название">
-        <Input value={name} onChange={(e) => setName(e.target.value)} />
-      </Form.Item>
-      <Form.Item label="Широта">
-        <Input value={lat} type="number" onChange={(e) => setLat(e.target.value)} />
-      </Form.Item>
-      <Form.Item label="Долгота">
-        <Input value={lon} type="number" onChange={(e) => setLon(e.target.value)} />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Добавить
-        </Button>
-      </Form.Item>
-    </Form>
+    <Modal
+      Modal open={visible}
+      title="Добавить объект"
+      okText="Создать"
+      cancelText="Отмена"
+      onCancel={onCancel}
+      footer={null}
+    >
+      <Form form={form} onFinish={onFinish} layout="vertical">
+        <Form.Item
+          name="name"
+          label="Название"
+          rules={[{ required: true, message: 'Пожалуйста, введите название объекта' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="description"
+          label="Описание"
+          rules={[{ required: true, message: 'Пожалуйста, введите описание объекта' }]}
+        >
+          <Input.TextArea rows={4} />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Создать
+          </Button>
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 };
 

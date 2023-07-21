@@ -1,49 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Modal } from 'antd';
-import Map from './components/Map.jsx';
+import React, { useState } from 'react';
+import MapComponent from './components/Map.jsx';
 import ObjectForm from './components/ObjectForm.jsx';
+import { fromLonLat, toLonLat } from 'ol/proj.js';
 
 const App = () => {
-  const [objects, setObjects] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    // Загрузка объектов из localStorage при загрузке страницы
-    const localStorageObjects = localStorage.getItem('objects');
-    if (localStorageObjects) {
-      setObjects(JSON.parse(localStorageObjects));
-    }
-  }, []);
+  const handleOk = (values) => {
+    const lonlat = fromLonLat(values.coordinates); // Преобразование координат
+    const newObject = {
+      name: values.name,
+      description: values.description,
+      coordinates: lonlat,
+    };
+  
+    // Обработка создания нового объекта (можно сохранить в localStorage)
+    console.log('Создан новый объект:', newObject);
+    setModalVisible(false);
+  };
 
-  useEffect(() => {
-    // Сохранение объектов в localStorage
-    localStorage.setItem('objects', JSON.stringify(objects));
-  }, [objects]);
-
-  const handleAddObject = (newObject) => {
-    setObjects([...objects, newObject]);
-    setShowModal(false);
+  const handleCancel = () => {
+    setModalVisible(false);
   };
 
   return (
     <div>
-      <Button
-        type="primary"
-        onClick={() => setShowModal(true)}
-        style={{ marginBottom: '16px' }}
-      >
-        Добавить объект
-      </Button>
-      <Map objects={objects} />
-      <Modal
-        title="Добавить объект"
-        Modal open={modalVisible}
-        onCancel={() => setShowModal(false)}
-        footer={null}
-      >
-        <ObjectForm onAddObject={handleAddObject} />
-      </Modal>
+      <MapComponent />
+      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+        <button onClick={() => setModalVisible(true)}>Добавить объект</button>
+      </div>
+      <ObjectForm visible={isModalVisible} onCreate={handleOk} onCancel={handleCancel} />
     </div>
   );
 };

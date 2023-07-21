@@ -9,7 +9,7 @@ module.exports = {
   },
   devServer: {
     contentBase: './dist',
-    port: 300
+    port: 3000
   },
   module: {
     rules: [
@@ -24,13 +24,14 @@ module.exports = {
         }
       },
       {
+        test: /\.(?:ico|gif|png|jpg|jpeg)$/i,
+        type: 'asset/resource',
+      },
+      {
         test: /\.css$/,
         use: ['style-loader', 'css-loader']
       }
     ]
-  },
-  resolve: {
-    extensions: ['.js', '.jsx']
   },
   plugins: [
     new HtmlWebpackPlugin({

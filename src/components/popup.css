@@ -1,0 +1,10 @@
+.ol-popup{
+    height: 100px;
+    width:100px;
+    text-align:center;
+    background-color: white;
+    display: block;
+    margin-left: 50%;
+    margin-top:50%;
+    opacity: 0.75;
+}
