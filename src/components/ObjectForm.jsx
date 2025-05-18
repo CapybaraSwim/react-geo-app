@@ -1,42 +1,40 @@
-import React, { useState } from 'react';
-import { Button, Form, Input, Modal } from 'antd';
+import React from 'react';
+import { Modal, Form, Input } from 'antd';
 
 const ObjectForm = ({ visible, onCreate, onCancel }) => {
   const [form] = Form.useForm();
 
-  const onFinish = (values) => {
-    onCreate(values);
-    form.resetFields();
-  };
-
   return (
     <Modal
-      Modal open={visible}
+      open={visible}
       title="Добавить объект"
       okText="Создать"
       cancelText="Отмена"
       onCancel={onCancel}
-      footer={null}
+      onOk={() => {
+        form.validateFields()
+          .then(values => {
+            form.resetFields();
+            onCreate({
+              name: values.name,
+              description: values.description,
+              coordinates: [ parseFloat(values.lon), parseFloat(values.lat) ],
+            });
+          });
+      }}
     >
-      <Form form={form} onFinish={onFinish} layout="vertical">
-        <Form.Item
-          name="name"
-          label="Название"
-          rules={[{ required: true, message: 'Пожалуйста, введите название объекта' }]}
-        >
+      <Form form={form} layout="vertical">
+        <Form.Item name="name" label="Название" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item
-          name="description"
-          label="Описание"
-          rules={[{ required: true, message: 'Пожалуйста, введите описание объекта' }]}
-        >
-          <Input.TextArea rows={4} />
+        <Form.Item name="description" label="Описание">
+          <Input.TextArea rows={3} />
         </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Создать
-          </Button>
+        <Form.Item name="lon" label="Долгота" rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item name="lat" label="Широта" rules={[{ required: true }]}>
+          <Input />
         </Form.Item>
       </Form>
     </Modal>

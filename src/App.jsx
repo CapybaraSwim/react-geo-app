@@ -1,36 +1,38 @@
 import React, { useState } from 'react';
-import MapComponent from './components/Map.jsx';
-import ObjectForm from './components/ObjectForm.jsx';
-import { fromLonLat, toLonLat } from 'ol/proj.js';
+import { useDispatch }      from 'react-redux';
+import { Button }           from 'antd';
+
+import MapComponent from './components/Map';
+import ObjectForm   from './components/ObjectForm';
+import { addObject } from './store/objectsSlice';
 
 const App = () => {
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const dispatch = useDispatch();
 
-  const handleOk = (values) => {
-    const lonlat = fromLonLat(values.coordinates); // Преобразование координат
-    const newObject = {
-      name: values.name,
-      description: values.description,
-      coordinates: lonlat,
-    };
-  
-    // Обработка создания нового объекта (можно сохранить в localStorage)
-    console.log('Создан новый объект:', newObject);
-    setModalVisible(false);
-  };
-
-  const handleCancel = () => {
+  const handleCreate = obj => {
+    dispatch(addObject(obj));
     setModalVisible(false);
   };
 
   return (
-    <div>
+    <>
+      <Button
+        type="primary"
+        style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000 }}
+        onClick={() => setModalVisible(true)}
+      >
+        Добавить объект
+      </Button>
+
       <MapComponent />
-      <div style={{ position: 'absolute', top: 16, right: 16 }}>
-        <button onClick={() => setModalVisible(true)}>Добавить объект</button>
-      </div>
-      <ObjectForm visible={isModalVisible} onCreate={handleOk} onCancel={handleCancel} />
-    </div>
+
+      <ObjectForm
+        visible={modalVisible}
+        onCreate={handleCreate}
+        onCancel={() => setModalVisible(false)}
+      />
+    </>
   );
 };
 

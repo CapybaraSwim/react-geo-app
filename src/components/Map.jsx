@@ -1,108 +1,120 @@
-import { fromLonLat, transform } from 'ol/proj.js';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useSelector }              from 'react-redux';
 import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import Overlay from 'ol/Overlay';
-import Feature from 'ol/Feature';
-import Point from 'ol/geom/Point';
-import { Style, Icon } from 'ol/style';
-import { Vector as VectorLayer } from 'ol/layer';
-import { Vector as VectorSource } from 'ol/source';
+import Map                           from 'ol/Map';
+import View                          from 'ol/View';
+import TileLayer                     from 'ol/layer/Tile';
+import OSM                           from 'ol/source/OSM';
+import Overlay                       from 'ol/Overlay';
+import Feature                       from 'ol/Feature';
+import Point                         from 'ol/geom/Point';
+import { Style, Icon }               from 'ol/style';
+import { Vector as VectorLayer }     from 'ol/layer';
+import { Vector as VectorSource }    from 'ol/source';
+import { fromLonLat, toLonLat }      from 'ol/proj';
+import 'ol-popup';
 import './popup.css';
 
-const MapComponent = () => {
-  const mapRef = useRef(null);
-  const popupRef = useRef(null);
-  const [map, setMap] = useState(null);
-  let objects = [
-    {
-      name: 'ЮФУ Библиотека',
-      coordinates: [39.699196, 47.233797],
-    },
-    {
-      name: 'ТЦ Плаза',
-      coordinates: [39.631649, 47.208845],
-    },
-  ];
+import markerImg from '../assets/marker.png';
 
+const MapComponent = () => {
+  const mapElementRef     = useRef(null);
+  const popupElementRef   = useRef(null);
+  const mapInstanceRef    = useRef(null);
+  const objects           = useSelector(state => state.objects);
+
+  // инициализация карты и оверлея
   useEffect(() => {
-    const mapObject = new Map({
-      target: mapRef.current,
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-      ],
+    if (!mapElementRef.current) return;
+
+    const map = new Map({
+      target: mapElementRef.current,
+      layers: [new TileLayer({ source: new OSM() })],
       view: new View({
         center: fromLonLat([39.699196, 47.233797]),
         zoom: 12,
       }),
     });
 
-    setMap(mapObject);
+    // сохраняем инстанс
+    mapInstanceRef.current = map;
 
-    return () => mapObject.setTarget(undefined);
+    // создаём popup overlay
+    const overlay = new Overlay({
+      element: popupElementRef.current,
+      positioning: 'bottom-center',
+      stopEvent: false,
+      offset: [0, -25],
+    });
+    map.addOverlay(overlay);
+
+    // клик по крестику закрывает попап
+    popupElementRef.current
+      .querySelector('.ol-popup-closer')
+      .onclick = () => {
+        overlay.setPosition(undefined);
+        return false;
+      };
+
+    // клик по маркеру — показываем popup
+    map.on('click', evt => {
+      const feat = map.forEachFeatureAtPixel(evt.pixel, f => f);
+      if (feat) {
+        const coord = toLonLat(feat.getGeometry().getCoordinates());
+        overlay.setPosition(fromLonLat(coord));
+        popupElementRef.current
+          .querySelector('.ol-popup-content')
+          .innerText = feat.get('name');
+      } else {
+        overlay.setPosition(undefined);
+      }
+    });
+
+    return () => map.setTarget(undefined);
   }, []);
 
+  // эффект для маркеров: каждый раз, когда objects меняется
   useEffect(() => {
-    if (map) {
-      const overlay = new Overlay({
-        element: popupRef.current,
-        positioning: 'bottom-center',
-        offset: [, -10],
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    // удаляем предыдущий слой "markers"
+    map.getLayers().getArray()
+      .filter(l => l.get('name') === 'markers')
+      .forEach(l => map.removeLayer(l));
+
+    // создаём новые фичи
+    const features = objects.map(o => {
+      const feat = new Feature({
+        geometry: new Point(fromLonLat(o.coordinates)),
       });
-      map.addOverlay(overlay);
-
-      const closer = document.getElementById('popup-closer');
-      closer.onclick = () => overlay.setPosition(undefined);
-
-      map.on('click', (evt) => {
-        const feature = map.forEachFeatureAtPixel(evt.pixel, (ft) => ft);
-        if (feature) {
-          const coordinates = transform(feature.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326');
-          overlay.setPosition(coordinates);
-          const popupContent = document.getElementById('popup-content');
-          popupContent.innerHTML = feature.get('name');
-        } else {
-          overlay.setPosition(undefined);
-        }
-      });
-    }
-  }, [map]);
-
-  useEffect(() => {
-    if (map && objects.length > 0) {
-      const markerLayer = new VectorLayer({
-        source: new VectorSource({
-          features: objects.map((obj) => {
-            const lonlat = transform(obj.coordinates, 'EPSG:4326', 'EPSG:3857');
-            const feature = new Feature({
-              geometry: new Point(lonlat),
-            });
-            feature.setStyle(new Style({
-              image: new Icon({
-                src: 'marker.png',
-                scale: 0.03,
-              }),
-            }));
-            feature.set('name', obj.name); // Set the name property of the feature
-            return feature;
-          }),
+      feat.set('name', o.name);
+      feat.setStyle(new Style({
+        image: new Icon({
+          src: markerImg,
+          scale: 0.05,
         }),
-      });
-      map.addLayer(markerLayer);
-    }
-  }, [map, objects]);
+      }));
+      return feat;
+    });
+
+    // добавляем новый слой
+    const vectorLayer = new VectorLayer({
+      name: 'markers',
+      source: new VectorSource({ features }),
+    });
+    map.addLayer(vectorLayer);
+  }, [objects]);
 
   return (
     <>
-      <div id="map" ref={mapRef} style={{ width: '100%', height: '100vh' }}></div>
-      <div id="popup" className="ol-popup" ref={popupRef}>
-        <button id="popup-closer" className="ol-popup-closer"></button>
-        <div id="popup-content"></div>
+      <div
+        ref={mapElementRef}
+        style={{ width: '100%', height: '100vh' }}
+      />
+      <div ref={popupElementRef} className="ol-popup">
+        <a href="#" className="ol-popup-closer"></a>
+        <div className="ol-popup-content"></div>
       </div>
     </>
   );
