@@ -1,1 +1,58 @@
-node_modules
+# Node.js
+node_modules/
+package-lock.json
+
+# Локальные настройки IDE / редакторов
+.vscode/
+.idea/
+
+# Логи
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Сборки
+dist/
+build/
+
+# Конфиг окружения
+.env
+.env.*.local
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Системные
+*.log
+
+# Кеши
+.cache/
+.temp/
+.parcel-cache/
+
+# Тестовые отчёты
+coverage/
+jestcoverage/
+
+# Source maps (если вы не хотите их в репо)
+*.map
+
+# Антиполигоны
+*.pem
+*.key
+
+# TypeScript (если у вас нет исходников .ts/.tsx в репо)
+*.tsbuildinfo
+
+# Сгенерированные файлы
+*.tgz
+
+# Прочие временные файлы
+*.tmp
+*.swp
